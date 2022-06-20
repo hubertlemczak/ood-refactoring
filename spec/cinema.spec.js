@@ -50,7 +50,7 @@ describe('Cinema', () => {
         duration: '2:08',
       },
     ];
-    expect(cinema.films).toEqual(expected);
+    expect(cinema.movies).toEqual(expected);
   });
 
   it('returns error trying to create duplicate film', () => {
@@ -64,11 +64,11 @@ describe('Cinema', () => {
   it('returns error trying to create film with invalid rating', () => {
     const invalidRatings = ['20', '0', 'UUU'];
     const validRatings = ['U', 'PG', '12', '15', '18'];
-
     for (const invalidRating of invalidRatings) {
-      const result = cinema.addMovie('Film does not exist', invalidRating, '2:08');
       const expected = 'Invalid rating';
-      expect(result).toEqual(expected);
+      expect(() => {
+        cinema.addMovie('Film does not exist', invalidRating, '2:08');
+      }).toThrow(Error(expected));
     }
 
     for (const validRating of validRatings) {

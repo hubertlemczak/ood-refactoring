@@ -1,6 +1,6 @@
 class Cinema {
   constructor() {
-    this.films = [];
+    this.movies = [];
     this.screens = [];
   }
 
@@ -12,6 +12,7 @@ class Cinema {
         capacity: capacity,
         showings: [],
       });
+    else throw Error('Screen already exists');
   }
 
   isScreen(screenName) {
@@ -19,73 +20,70 @@ class Cinema {
     this.screens.forEach((screen) => {
       if (screen.name.includes(screenName)) result = true;
     });
-    if (result || !screenName) throw Error('Screen already exists');
     return result;
   }
 
   isMovie(movieName) {
-    let film = false;
-    this.films.forEach((movie) => {
-      if (movie.name.includes(movieName)) film = true;
+    let result = false;
+    this.movies.forEach((movie) => {
+      if (movie.name.includes(movieName)) result = true;
     });
-    if (film) throw Error('Film already exists');
-    return film;
+    return result;
   }
 
   getMovie(movieName) {
-    let film;
-    this.films.forEach((movie) => {
-      if (movie.name.includes(movieName)) film = movie;
+    let result = this.isMovie(movieName);
+    this.movies.forEach((movie) => {
+      if (movie.name.includes(movieName)) result = movie;
     });
-    if (!film) throw Error('Film does not exist');
-    return film;
+    if (!result) throw Error('Film does not exist');
+    return result;
   }
-  // Vague method name: addMovie()
-  // Could be in new Movie class
-  addMovie(movieName, rating, duration) {
-    this.isMovie(movieName);
-    // This can be another method: isMovieRatingValid()
-    const movieRatings = ['U', 'PG', '12', '15', '18'];
-    if (!movieRatings.includes(rating)) return 'Invalid rating';
 
-    // This can be another method: isMovieDurationValid()
+  getScreen(screenName) {
+    let result = this.isScreen(screenName);
+    this.screens.forEach((screen) => {
+      if (screen.name.includes(screenName)) result = screen;
+    });
+    if (!result) throw Error('Invalid screen');
+    return result;
+  }
+
+  isMovieRatingValid(rating) {
+    const movieRatings = ['U', 'PG', '12', '15', '18'];
+    if (!movieRatings.includes(rating)) return false;
+    return true;
+  }
+
+  isTimeValid(duration) {
     const result = /^(\d?\d):(\d\d)$/.exec(duration);
-    if (result == null) throw Error('Invalid duration');
+    if (result == null) return false;
     const hours = parseInt(result[1]);
     const mins = parseInt(result[2]);
-    if (hours < 0 || (hours <= 0 && mins <= 0) || mins > 60) {
-      throw Error('Invalid duration');
-    }
-
-    this.films.push({ name: movieName, rating, duration });
+    if (hours < 0 || (hours <= 0 && mins <= 0) || mins > 60) return false;
+    return true;
+  }
+  // Could be in new Movie class
+  addMovie(movieName, rating, duration) {
+    if (this.isMovie(movieName)) throw Error('Film already exists');
+    if (!this.isMovieRatingValid(rating)) throw Error('Invalid rating');
+    if (!this.isTimeValid(duration)) throw Error('Invalid duration');
+    this.movies.push({ name: movieName, rating, duration });
   }
 
-  // Vague method name: addMovieScreening()
-  //Add a showing for a specific film to a screen at the provided start time
   addMovieScreening(movieName, screenName, startTime) {
-    // This can be another method: isStartTimeValid()
-    let result = /^(\d?\d):(\d\d)$/.exec(startTime);
-    if (result == null) throw Error('Invalid start time');
+    if (!this.isTimeValid(startTime)) throw Error('Invalid start time');
+    const intendedStartTimeHours = Number(startTime.split(':')[0]);
+    const intendedStartTimeMinutes = Number(startTime.split(':')[1]);
 
-    const intendedStartTimeHours = parseInt(result[1]);
-    const intendedStartTimeMinutes = parseInt(result[2]);
-    if (
-      intendedStartTimeHours < 0 ||
-      (intendedStartTimeHours <= 0 && intendedStartTimeMinutes <= 0) ||
-      intendedStartTimeMinutes > 60
-    )
-      throw Error('Invalid start time');
-
-    const film = this.getMovie(movieName);
+    const movie = this.getMovie(movieName);
 
     //From duration, work out intended end time
     //if end time is over midnight, it's an error
     //Check duration
-    result = /^(\d?\d):(\d\d)$/.exec(film.duration);
-    if (result == null) throw Error('Invalid duration');
-
-    const durationHours = parseInt(result[1]);
-    const durationMins = parseInt(result[2]);
+    if (!this.isTimeValid(movie.duration)) throw Error('Invalid duration');
+    const durationHours = Number(movie.duration.split(':')[0]);
+    const durationMins = Number(movie.duration.split(':')[1]);
 
     //Add the running time to the duration
     let intendedEndTimeHours = intendedStartTimeHours + durationHours;
@@ -100,36 +98,21 @@ class Cinema {
 
     if (intendedEndTimeHours >= 24) throw Error('Invalid start time - film ends after midnight');
 
-    //Find the screen by name
-    let theatre = null;
-    for (let i = 0; i < this.screens.length; i++) {
-      if (this.screens[i].name == screenName) {
-        theatre = this.screens[i];
-      }
-    }
-
-    if (theatre === null) throw Error('Invalid screen');
+    const screen = this.getScreen(screenName);
 
     //Go through all existing showings for this film and make
     //sure the start time does not overlap
-    for (let i = 0; i < theatre.showings.length; i++) {
+    for (let i = 0; i < screen.showings.length; i++) {
       //Get the start time in hours and minutes
-      const startTime = theatre.showings[i].startTime;
-      result = /^(\d?\d):(\d\d)$/.exec(startTime);
-      if (result == null) throw Error('Invalid start time');
-
-      const startTimeHours = parseInt(result[1]);
-      const startTimeMins = parseInt(result[2]);
-      if (startTimeHours <= 0 || startTimeMins > 60) throw Error('Invalid start time');
-
+      const startTime = screen.showings[i].startTime;
+      if (!this.isTimeValid(startTime)) throw Error('Invalid start time');
+      const startTimeHours = Number(startTime.split(':')[0]);
+      const startTimeMins = Number(startTime.split(':')[1]);
       //Get the end time in hours and minutes
-      const endTime = theatre.showings[i].endTime;
-      result = /^(\d?\d):(\d\d)$/.exec(endTime);
-      if (result == null) throw Error('Invalid end time');
-
-      const endTimeHours = parseInt(result[1]);
-      const endTimeMins = parseInt(result[2]);
-      if (endTimeHours <= 0 || endTimeMins > 60) throw Error('Invalid end time');
+      const endTime = screen.showings[i].endTime;
+      if (!this.isTimeValid(endTime)) throw Error('Invalid end time');
+      const endTimeHours = Number(endTime.split(':')[0]);
+      const endTimeMins = Number(endTime.split(':')[1]);
 
       //if intended start time is between start and end
       const d1 = new Date();
@@ -162,8 +145,8 @@ class Cinema {
     }
 
     //Add the new start time and end time to the showing
-    theatre.showings.push({
-      film: film,
+    screen.showings.push({
+      film: movie,
       startTime: startTime,
       endTime: intendedEndTimeHours + ':' + intendedEndTimeMinutes,
     });
