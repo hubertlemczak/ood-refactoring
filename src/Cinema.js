@@ -71,80 +71,102 @@ class Cinema {
     this.movies.push({ name: movieName, rating, duration });
   }
 
-  addMovieScreening(movieName, screenName, startTime) {
+  getShowingStartTime(startTime) {
     if (!this.isTimeValid(startTime)) throw Error('Invalid start time');
-    const intendedStartTimeHours = Number(startTime.split(':')[0]);
-    const intendedStartTimeMinutes = Number(startTime.split(':')[1]);
+    const startTimeHours = Number(startTime.split(':')[0]);
+    const startTimeMinutes = Number(startTime.split(':')[1]);
+    return [startTimeHours, startTimeMinutes];
+  }
 
+  getShowingEndTime(movieName, startTime) {
+    const [startTimeHours, startTimeMinutes] = this.getShowingStartTime(startTime);
+    const [durationHours, durationMins] = this.getMovieDuration(movieName);
+    let endTimeHours = startTimeHours + durationHours;
+
+    const screenCleanTime = 20;
+    let endTimeMinutes = startTimeMinutes + durationMins + screenCleanTime;
+    if (endTimeMinutes >= 60) {
+      endTimeHours += Math.floor(endTimeMinutes / 60);
+      endTimeMinutes = endTimeMinutes % 60;
+    }
+
+    if (endTimeHours >= 24) throw Error('Invalid start time - film ends after midnight');
+    return [endTimeHours, endTimeMinutes];
+  }
+
+  getMovieDuration(movieName) {
     const movie = this.getMovie(movieName);
-
-    //From duration, work out intended end time
-    //if end time is over midnight, it's an error
-    //Check duration
     if (!this.isTimeValid(movie.duration)) throw Error('Invalid duration');
     const durationHours = Number(movie.duration.split(':')[0]);
     const durationMins = Number(movie.duration.split(':')[1]);
+    return [durationHours, durationMins];
+  }
 
-    //Add the running time to the duration
-    let intendedEndTimeHours = intendedStartTimeHours + durationHours;
-    //It takes 20 minutes to clean the screen so add on 20 minutes to the duration
-    //when working out the end time
-    const screenCleanTime = 20;
-    let intendedEndTimeMinutes = intendedStartTimeMinutes + durationMins + screenCleanTime;
-    if (intendedEndTimeMinutes >= 60) {
-      intendedEndTimeHours += Math.floor(intendedEndTimeMinutes / 60);
-      intendedEndTimeMinutes = intendedEndTimeMinutes % 60;
-    }
-
-    if (intendedEndTimeHours >= 24) throw Error('Invalid start time - film ends after midnight');
-
+  checkMovieShowings(movieName, screenName, startTime) {
     const screen = this.getScreen(screenName);
-
-    //Go through all existing showings for this film and make
-    //sure the start time does not overlap
     for (let i = 0; i < screen.showings.length; i++) {
-      //Get the start time in hours and minutes
-      const startTime = screen.showings[i].startTime;
-      if (!this.isTimeValid(startTime)) throw Error('Invalid start time');
-      const startTimeHours = Number(startTime.split(':')[0]);
-      const startTimeMins = Number(startTime.split(':')[1]);
-      //Get the end time in hours and minutes
+      const showingStartTime = screen.showings[i].startTime;
+      if (!this.isTimeValid(showingStartTime)) throw Error('Invalid start time');
+      const startTimeHours = Number(showingStartTime.split(':')[0]);
+      const startTimeMins = Number(showingStartTime.split(':')[1]);
       const endTime = screen.showings[i].endTime;
       if (!this.isTimeValid(endTime)) throw Error('Invalid end time');
       const endTimeHours = Number(endTime.split(':')[0]);
       const endTimeMins = Number(endTime.split(':')[1]);
-
-      //if intended start time is between start and end
-      const d1 = new Date();
-      d1.setMilliseconds(0);
-      d1.setSeconds(0);
-      d1.setMinutes(intendedStartTimeMinutes);
-      d1.setHours(intendedStartTimeHours);
-
-      const d2 = new Date();
-      d2.setMilliseconds(0);
-      d2.setSeconds(0);
-      d2.setMinutes(intendedEndTimeMinutes);
-      d2.setHours(intendedEndTimeHours);
-
-      const d3 = new Date();
-      d3.setMilliseconds(0);
-      d3.setSeconds(0);
-      d3.setMinutes(startTimeMins);
-      d3.setHours(startTimeHours);
-
-      const d4 = new Date();
-      d4.setMilliseconds(0);
-      d4.setSeconds(0);
-      d4.setMinutes(endTimeMins);
-      d4.setHours(endTimeHours);
-
-      if ((d1 > d3 && d1 < d4) || (d2 > d3 && d2 < d4) || (d1 < d3 && d2 > d4)) {
-        throw Error('Time unavailable');
-      }
+      this.isOverlapping(
+        movieName,
+        startTime,
+        startTimeHours,
+        startTimeMins,
+        endTimeHours,
+        endTimeMins
+      );
     }
+  }
 
-    //Add the new start time and end time to the showing
+  isOverlapping(movieName, startTime, startTimeHours, startTimeMins, endTimeHours, endTimeMins) {
+    const [intendedStartTimeHours, intendedStartTimeMinutes] = this.getShowingStartTime(startTime);
+    const [intendedEndTimeHours, intendedEndTimeMinutes] = this.getShowingEndTime(
+      movieName,
+      startTime
+    );
+    const d1 = new Date();
+    d1.setMilliseconds(0);
+    d1.setSeconds(0);
+    d1.setMinutes(intendedStartTimeMinutes);
+    d1.setHours(intendedStartTimeHours);
+
+    const d2 = new Date();
+    d2.setMilliseconds(0);
+    d2.setSeconds(0);
+    d2.setMinutes(intendedEndTimeMinutes);
+    d2.setHours(intendedEndTimeHours);
+
+    const d3 = new Date();
+    d3.setMilliseconds(0);
+    d3.setSeconds(0);
+    d3.setMinutes(startTimeMins);
+    d3.setHours(startTimeHours);
+
+    const d4 = new Date();
+    d4.setMilliseconds(0);
+    d4.setSeconds(0);
+    d4.setMinutes(endTimeMins);
+    d4.setHours(endTimeHours);
+
+    if ((d1 > d3 && d1 < d4) || (d2 > d3 && d2 < d4) || (d1 < d3 && d2 > d4)) {
+      throw Error('Time unavailable');
+    }
+  }
+
+  addMovieShowing(movieName, screenName, startTime) {
+    const movie = this.getMovie(movieName);
+    const [intendedEndTimeHours, intendedEndTimeMinutes] = this.getShowingEndTime(
+      movieName,
+      startTime
+    );
+    const screen = this.getScreen(screenName);
+    this.checkMovieShowings(movieName, screenName, startTime);
     screen.showings.push({
       film: movie,
       startTime: startTime,

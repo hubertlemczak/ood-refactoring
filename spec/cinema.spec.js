@@ -94,7 +94,7 @@ describe('Cinema', () => {
     cinema.addScreen('Screen #1', 20);
     const expected = 'Film does not exist';
     expect(() => {
-      cinema.addMovieScreening('Film doesnt exist!', 'Screen #1', '10:00');
+      cinema.addMovieShowing('Film doesnt exist!', 'Screen #1', '10:00');
     }).toThrow(Error(expected));
   });
 
@@ -103,7 +103,7 @@ describe('Cinema', () => {
     cinema.addScreen('Screen #1', 20);
     const expected = 'Invalid screen';
     expect(() => {
-      cinema.addMovieScreening('Film1', 'Screen Doesnt exist', '10:00');
+      cinema.addMovieShowing('Film1', 'Screen Doesnt exist', '10:00');
     }).toThrow(Error(expected));
   });
 
@@ -114,7 +114,7 @@ describe('Cinema', () => {
       Film1: ['Screen #1 Film1 (12) 10:00 - 11:40'],
     };
 
-    cinema.addMovieScreening('Film1', 'Screen #1', '10:00');
+    cinema.addMovieShowing('Film1', 'Screen #1', '10:00');
 
     const result = cinema.allShowings();
     expect(result).toEqual(expected);
@@ -128,8 +128,8 @@ describe('Cinema', () => {
       Film1: ['Screen #1 Film1 (12) 10:00 - 11:40', 'Screen #1 Film1 (12) 12:10 - 13:50'],
     };
 
-    cinema.addMovieScreening('Film1', 'Screen #1', '10:00');
-    cinema.addMovieScreening('Film1', 'Screen #1', '12:10');
+    cinema.addMovieShowing('Film1', 'Screen #1', '10:00');
+    cinema.addMovieShowing('Film1', 'Screen #1', '12:10');
 
     const result = cinema.allShowings();
     expect(result).toEqual(expected);
@@ -144,8 +144,8 @@ describe('Cinema', () => {
       Film1: ['Screen #1 Film1 (12) 10:00 - 11:40', 'Screen #2 Film1 (12) 10:00 - 11:40'],
     };
 
-    cinema.addMovieScreening('Film1', 'Screen #1', '10:00');
-    cinema.addMovieScreening('Film1', 'Screen #2', '10:00');
+    cinema.addMovieShowing('Film1', 'Screen #1', '10:00');
+    cinema.addMovieShowing('Film1', 'Screen #2', '10:00');
 
     const result = cinema.allShowings();
     expect(result).toEqual(expected);
@@ -162,11 +162,11 @@ describe('Cinema', () => {
       Film2: ['Screen #1 Film2 (15) 12:00 - 14:20', 'Screen #2 Film2 (15) 09:00 - 11:20'],
     };
 
-    cinema.addMovieScreening('Film1', 'Screen #1', '10:00');
-    cinema.addMovieScreening('Film1', 'Screen #2', '12:00');
+    cinema.addMovieShowing('Film1', 'Screen #1', '10:00');
+    cinema.addMovieShowing('Film1', 'Screen #2', '12:00');
 
-    cinema.addMovieScreening('Film2', 'Screen #1', '12:00');
-    cinema.addMovieScreening('Film2', 'Screen #2', '09:00');
+    cinema.addMovieShowing('Film2', 'Screen #1', '12:00');
+    cinema.addMovieShowing('Film2', 'Screen #2', '09:00');
 
     const result = cinema.allShowings();
     expect(result).toEqual(expected);
@@ -175,20 +175,20 @@ describe('Cinema', () => {
   it('returns error when film screening overlaps start', () => {
     cinema.addMovie('Film1', '12', '1:00');
     cinema.addScreen('Screen #1', 20);
-    cinema.addMovieScreening('Film1', 'Screen #1', '10:00');
+    cinema.addMovieShowing('Film1', 'Screen #1', '10:00');
     const expected = 'Time unavailable';
     expect(() => {
-      cinema.addMovieScreening('Film1', 'Screen #1', '11:00');
+      cinema.addMovieShowing('Film1', 'Screen #1', '11:00');
     }).toThrow(Error(expected));
   });
 
   it('returns error when film screening overlaps end', () => {
     cinema.addMovie('Film1', '12', '1:00');
     cinema.addScreen('Screen #1', 20);
-    cinema.addMovieScreening('Film1', 'Screen #1', '10:00');
+    cinema.addMovieShowing('Film1', 'Screen #1', '10:00');
     const expected = 'Time unavailable';
     expect(() => {
-      cinema.addMovieScreening('Film1', 'Screen #1', '09:10');
+      cinema.addMovieShowing('Film1', 'Screen #1', '09:10');
     }).toThrow(Error(expected));
   });
 
@@ -196,10 +196,10 @@ describe('Cinema', () => {
     cinema.addMovie('Film1', '12', '1:00');
     cinema.addMovie('Film2', '12', '4:00');
     cinema.addScreen('Screen #1', 20);
-    cinema.addMovieScreening('Film1', 'Screen #1', '10:00');
+    cinema.addMovieShowing('Film1', 'Screen #1', '10:00');
     const expected = 'Time unavailable';
     expect(() => {
-      cinema.addMovieScreening('Film2', 'Screen #1', '08:30');
+      cinema.addMovieShowing('Film2', 'Screen #1', '08:30');
     }).toThrow(Error(expected));
   });
 });
