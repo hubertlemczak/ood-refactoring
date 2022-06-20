@@ -87,10 +87,10 @@ class Cinema {
 
     //Add the running time to the duration
     let intendedEndTimeHours = intendedStartTimeHours + durationHours;
-
     //It takes 20 minutes to clean the screen so add on 20 minutes to the duration
     //when working out the end time
-    let intendedEndTimeMinutes = intendedStartTimeMinutes + durationMins + 20;
+    const screenCleanTime = 20;
+    let intendedEndTimeMinutes = intendedStartTimeMinutes + durationMins + screenCleanTime;
     if (intendedEndTimeMinutes >= 60) {
       intendedEndTimeHours += Math.floor(intendedEndTimeMinutes / 60);
       intendedEndTimeMinutes = intendedEndTimeMinutes % 60;
