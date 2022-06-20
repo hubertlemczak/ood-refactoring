@@ -1,5 +1,8 @@
 {
   "dependencies": {
     "jasmine": "^4.0.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.17.0"
   }
 }
